@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
+    <meta name="viewport" content="initial-scale=1, maximum-scale=3, minimum-scale=1, user-scalable=no">
+    <meta name="apple-mobile-web-app-title" content="防伪查询">
+    <meta name="format-detection" content="telphone=no, email=no"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="msapplication-tap-highlight" content="no">
+    <link href="./bower_components/swiper/dist/css/swiper.min.css" rel="stylesheet" type="text/css" />
+    <link href="./css/global.css" rel="stylesheet" type="text/css" />
+    <link href="./css/media.css" rel="stylesheet" type="text/css" />
+    
+    <script type="text/javascript" src="js/jquery.js" ></script>
+    <script type="text/javascript" src="js/vue.js" ></script>
+    <script type="text/javascript" src="js/jq_vueaixos.js" ></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <title>丸美产品防伪查询</title>
+</head>
+<body>
+    <div class="bg-f4f4f4" id="app">
+        <div v-if="type === 'fail'">
+            <!-- 产品不存在页面 -->
+            <div class="bg goods-main">
+                <div class="logo"><a href="index.html" title=""><img src="images/logo.png" alt=""></a></div>
+                <div class="not-found">
+                    <img src="images/img-notfound.png" alt="">
+                    <p>{{ sysMsg }}</p>
+                </div>
+                <div class="goods-name not-found-name">
+                    <h2><i class="approve"></i><span>{{ companyName }}</span></h2>
+                </div>
+            </div>
+        </div>
+        <div v-else-if="type === 'succes'">
+            <!-- 产品存在页面 -->
+            <div class="bg goods-main">
+                <div class="logo"><a href="index.html" title=""><img src="images/logo.png" alt=""></a></div>
+                <div class="goods-swiper">
+                    <div class="swiper-container">
+                        <div class="swiper-wrapper">
+                            <div class="swiper-slide"><img :src="goods.gallery[0]" alt=""></div>
+                        </div>
+                        <div class="swiper-pagination"></div>
+                    </div>
+                </div>
+                <div class="goods-name">
+                    <h1>{{ goods.productname  }}</h1>
+                    <h2><i class="approve"></i><span>{{ companyName }}</span></h2>
+                </div>
+                <div class="goods-price ov">
+                    <div class="text fl"><i></i>建议零售价</div>
+                    <div class="num fr">{{ goods.goods_price }}</div>
+                </div>
+            </div>
+            <div class="goods-attribute">
+                <ul>
+                    <li>
+                        <div class="attribute">
+                            <div class="attribute-name">防窜码</div>
+                            <div class="attribute-con">{{ goods.idcode }}</div>
+                        </div>
+                    </li>
+                    <li >
+                        <div class="attribute">
+                            <div class="attribute-name">激光码</div>
+                            <div class="attribute-con">{{ goods.procode }}</div>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="attribute">
+                            <div class="attribute-name">生产批号</div>
+                            <div class="attribute-con">{{ goods.batch }}</div>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="attribute">
+                            <div class="attribute-name">生产日期</div>
+                            <div class="attribute-con">{{ goods.producedate }}</div>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="attribute">
+                            <div class="attribute-name">代理商名称</div>
+                            <div class="attribute-con">{{ goods.agent_name }}</div>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="attribute">
+                            <div class="attribute-name">生产商名称</div>
+                            <div class="attribute-con">{{ goods.agent_name }}</div>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="attribute">
+                            <div class="attribute-name">生产商地址</div>
+                            <div class="attribute-con" >{{ goods.address }}</div>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <div class="goods-description">
+                <p class="description-title">产品描述</p>
+                <div class="description-main" v-html="goods.goods_desc"></div>
+            </div>
+            <div v-if="goods.video_url.length != null">
+                <div class="goods-description">
+                    <p class="description-title">相关视频</p>
+                    <div class="description-main">
+                        <video class="goods-video" v-bind:src="goods.video_url" autobuffer autoloop loop controls poster=""></video>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div v-else>
+            <!-- 默认页面 -->        
+            <div class="bg goods-main">
+                <div class="logo"><a href="index.html" title=""><img src="images/logo.png" alt=""></a></div>
+                <div class="not-found">
+                    <img src="images/img_find.png" alt="">
+                    <p>{{ sysName }}</p>
+                </div>
+                <div class="goods-name not-found-name">
+                    <h2><i class="approve"></i><span>{{ companyName }}</span></h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="service-tel ov">
+            <div class="fl">客服电话</div>
+            <div class="fr">020-86511156</div>
+            <a class="call" >拨打</a>
+        </div>
+        <div class="service-tel search ov">
+            <p>自助查询</p>
+            <input v-model="code" class="input-search" type="search" name="" value="" placeholder="请输入防伪码">
+            <input v-on:click="search" class="input-submit" type="submit" name="" value="立即查询">
+        </div>
+    </div>
+
+
+    <script type="text/javascript">
+			
+		var app = new Vue({
+			el: "#app",
+			data(){
+				return {
+					sysMsg: '未查询到相关商品',
+					companyName: '广东丸美生物技术股份有限公司',
+					sysName: '丸美防伪查询系统',
+					api: 'http://marubi-security.project.geeyu.cn/api.php/search',
+					type: '',
+					code: '',
+					goods: {}
+				}
+			},
+			methods:{
+				search(){
+					if(this.code == null || this.code.length == 0){
+						alert("请输入验证码");
+						return ;
+					}else{
+						var service = $.initService();
+						
+						var param = {
+							code: this.code
+						}
+						
+						//发送请求到第三方接口
+						service.get( this.api, { params: param  }).then(res => {
+							if(res.data.code == 200){
+								app.$data.type = "succes";
+
+								app.$data.goods = res.data.data
+							}else{
+								app.$data.type="fail";
+							}
+						})
+					}
+				}
+			}
+		})
+   
+           
+
+    </script>
+</body>
+</html>

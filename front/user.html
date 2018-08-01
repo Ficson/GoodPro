@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset='utf-8'>
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+		<meta name="viewport" content="initial-scale=1, maximum-scale=3, minimum-scale=1, user-scalable=no">
+		<meta name="apple-mobile-web-app-title" content="防伪查询">
+		<meta name="format-detection" content="telphone=no, email=no" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="msapplication-tap-highlight" content="no">
+		<link href="./css/global.css" rel="stylesheet" type="text/css" />
+		<link href="./css/media.css" rel="stylesheet" type="text/css" />
+
+		<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+		<script type="text/javascript" src="js/jquery.js"></script>
+		<script type="text/javascript" src="js/vue.js"></script>
+		<script type="text/javascript" src="js/jq_vueaixos.js"></script>
+		<title>丸美产品防伪查询</title>
+		<style>
+			.btn-info {
+				display: flex;
+			}
+			
+			.btn-info input {
+				flex: 1;
+				background-color: rgb(83, 205, 100);
+				height: 35px;
+			}
+		</style>
+	</head>
+
+	<body>
+		<div id="app">
+			<div class="bg-f4f4f4" id="app">
+				<!-- 默认页面 -->
+				<div class="bg goods-main">
+					<div class="logo">
+						<a href="index.html" title=""><img src="images/logo.png" alt=""></a>
+					</div>
+					<div class="not-found">
+						<img src="images/img_find.png" alt="">
+						<p>丸美防伪查询系统</p>
+					</div>
+					<div class="goods-name not-found-name">
+						<h2><i class="approve"></i><span>丸美护肤有限公司</span></h2>
+					</div>
+				</div>
+			</div>
+
+			<div class="service-tel search ov">
+				<form method="get" action="user.html">
+					<div>
+						<input type="hidden" v-model="user.id" />
+						<p>用户名：</p>
+						<input class="input-search" type="search" v-model="user.name" v-bind:disabled="disabled" placeholder="用户名">
+					</div>
+					<div>
+						<p>密码：</p>
+						<input class="input-search" type="search" v-model="user.pwd" v-bind:disabled="disabled" placeholder="密码">
+					</div>
+					<div>
+						<p>手机号码：</p>
+						<input class="input-search" type="search" v-model="user.phone" v-bind:disabled="disabled" placeholder="手机号码">
+					</div>
+					<div class="btn-info">
+						<input type="button" v-on:click="updateUser" v-model="updateMsg">
+						<input type="button" v-on:click="select" value="防伪查询" style="background-color: #cd3637;">
+					</div>
+					<div class="btn-info">
+						<input type="button" v-on:click="update" value="保存">
+					</div>
+				</form>
+			</div>
+		</div>
+
+		</div>
+		<script type="application/javascript">
+			var app = new Vue({
+				el: "#app",
+				data() {
+					return {
+						user: {
+							name: '',
+							pwd: '',
+							phone: ''
+						},
+						disabled: "disabled",
+						updateMsg: "编辑用户信息"
+					}
+				},
+				methods: {
+					initUser() {
+						//取到会话里面的用户id
+						var userid = sessionStorage.getItem("token");
+						if(userid == null) {
+							alert("请重新登录")
+						} else {
+							var service = $.initService();
+
+							//发送的数据
+							var param = {
+								id: userid
+							}
+							service.post("http://127.0.0.1:8080/system/select", param).then(res => {
+								var data = res.data;
+								//单个绑定字段
+								this.user = data.content;
+							})
+						}
+					},
+
+					updateUser() {
+						this.disabled = !this.disabled;
+
+						if(this.disabled == false) {
+							this.updateMsg = "取消编辑";
+						} else {
+							this.updateMsg = "编辑用户信息";
+						}
+					},
+
+					update() {
+						var service = $.initService();
+
+						service.post('http://127.0.0.1:8080/system/update', this.user).then(res => {
+							var data = res.data;
+							if(data.code == 1001) {
+								alert("修改成功")
+								this.disabled = true;
+								this.updateMsg = "编辑用户信息";
+								//更新页面信息
+								this.initUser();
+							} else {
+								alert("修改失败")
+							}
+						})
+					},
+					select() {
+						window.location.href = "http://127.0.0.1:8020/front/select.html";
+					}
+				},
+				mounted() {
+					this.initUser();
+				}
+			})
+		</script>
+	</body>
+
+</html>
